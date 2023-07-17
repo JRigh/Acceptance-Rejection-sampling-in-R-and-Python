@@ -29,8 +29,8 @@ for (i in 1:n){
 }
 
 # Plotting the results along with the true distribution
-hist(theta, breaks=100, freq=FALSE, main="Random draws from beta(2.7, 6.3)")
-lines(x, dbeta(x, 2.7, 6.3))
+hist(theta, breaks=100, freq=FALSE, main="Random draws from beta(6.3, 2.7)")
+lines(x, dbeta(x, 6.3, 2.7))
 
 # and let's see if we get the same results
 cat("Estimated mean is equal to", mean(theta, na.rm=TRUE))
@@ -38,8 +38,9 @@ quantile(theta, probs=c(0.05,0.95), na.rm=TRUE)
 cat("Standard deviation is equal to", sd(theta, na.rm=TRUE))
 
 # check
-mean(rbeta(10000,2.7,6.3))
-sd(rbeta(10000,2.7,6.3))
+mean(rbeta(10000, 6.3, 2.7))
+sd(rbeta(10000, 6.3, 2.7))
+# same results as when using the inbuilt function rbeta()
 
 points = runif(n)
 uniforms = runif(n)
@@ -47,8 +48,6 @@ accept = uniforms < (f(points)/(c*g(points)))
 
 # plotting
 curve(f, lwd=2, main="Acceptance - Rejection method to sample random variates from a Beta(2.7, 6.3)")
-#curve(g, add=TRUE, col="red", lwd=2)
-#curve(c*g(x), add=TRUE, col="red", lty=2, lwd=2)
 points(points, c*uniforms, pch=ifelse(accept,4,4), col=ifelse(accept,"darkred","gray60"), cex=0.5)
 legend("bottomleft", c("f","accepted","rejected"), 
        lwd=c(2,NA,NA), col=c("black","darkred","gray60"),
@@ -58,6 +57,7 @@ legend("bottomleft", c("f","accepted","rejected"),
 # Example 2
 #----------
 
+set.seed(2023)
 # we want to learn about the mean survival time of butterflies using bayesian analysis
 n = 10000  # number of draws
 # density of exponential distribution with parameter theta = 1
@@ -85,42 +85,19 @@ for (i in 1:n){
   else {next}
 }
 
+# and let's see if we get the same results
+cat("Estimated EST is equal to", 1/mean(theta, na.rm=TRUE))
+# Estimated EST is equal to 1.946919
 
-# vector of exponential random variates
-x <- rexp(n) 
-# right hand side of the equation
-cgx <- c * g(x)
-# generate y uniformly in the interval [0,Mg(x)] : y = M ???g(x)???runif(1)
-y <- runif(n, min = 0 , max = cgx) 
-# accept if y < h(x)
-accepted <- ( y < f(x) )
+points = rexp(n)
+uniforms = runif(n, min = 0, max = c*g(points))
+accepted = uniforms < f(points)
 
-# vector of x values accepted (estimate of theta)
-thetai <- x[accepted] 
-
-# acceptance rate
-length(thetai) / n
-
-# Monte Carlo estimate of theta inverse, the expected survival time
-MST <- mean( 1/thetai )
-MST
-
-round(c(quantile(1/thetai, 0.025), quantile(1/thetai, 0.975)),3)
-
-I1approximationvar <- mean( 1/thetai^2 )
-I1approximationvar
-
-# thus the MC mean survival time is about 1.94389
-# and variance is about mean(1/thetai^2) = 4.27532
-
-# vector of x values accepted (estimate of theta)
-thetai <- x[accepted] 
-yaccepted <- y[accepted]
-points(thetai,yaccepted,col="darkred", pch=4,  cex=0.5)
-curve(f, lwd=2, col="black", main="Acceptance - Rejection method to sample random variates from the posterior distribution", xlim=c(0,1.2))
-points(x,y,col="gray60", pch=4, cex=0.5)
-legend("topright", c("f","accepted","rejected"), 
-       lwd=c(2,NA,NA), col=c("black","darkred","gray60","darkred"),
+# plotting
+curve(f, lwd=2, main="Acceptance - Rejection method to sample random variates from the target distribution")
+points(points, uniforms, pch=ifelse(accepted,4,4), col=ifelse(accepted,"darkred","gray60"), cex=0.5)
+legend("bottomleft", c("f","accepted","rejected"), 
+       lwd=c(2,NA,NA), col=c("black","darkred","gray60"),
        pch=c(NA,4,4), bg="white")
 
 #----
